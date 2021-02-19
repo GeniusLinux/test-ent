@@ -1,3 +1,3 @@
-FROM docker.pkg.github.com/geniuslinux/test-ent/test.base:latest
+FROM geniuslinux/test-ent:base
 
 RUN mkdir -p /root/tata
