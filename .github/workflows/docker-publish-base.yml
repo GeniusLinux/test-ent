@@ -17,6 +17,7 @@ env:
   # TODO: Change variable to your image's name.
   IMAGE_NAME_BASE: test.base
   IMAGE_NAME_CI: test.ci-platform
+  IMAGE_NAME_TOOL: test.toolchain
 
 jobs:
   # Run tests.
@@ -51,7 +52,8 @@ jobs:
       - name: Build image
         run: |
           docker build . --file base/Dockerfile --tag $IMAGE_NAME_BASE
-          docker build . --file ci-platform/Dockerfile --tag $IMAGE_NAME_BASE
+          docker build . --file ci-platform/Dockerfile --tag $IMAGE_NAME_CI
+          docker build . --file toolchain/Dockerfile --tag $IMAGE_NAME_TOOL
 
       - name: Log into registry
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin
@@ -60,10 +62,12 @@ jobs:
         run: |
           IMAGE_ID_BASE=docker.pkg.github.com/${{ github.repository }}/$IMAGE_NAME_BASE
           IMAGE_ID_CI=docker.pkg.github.com/${{ github.repository }}/$IMAGE_NAME_CI
+          IMAGE_ID_TOOL=docker.pkg.github.com/${{ github.repository }}/$IMAGE_NAME_TOOL
 
           # Change all uppercase to lowercase
           IMAGE_ID_BASE=$(echo $IMAGE_ID_BASE | tr '[A-Z]' '[a-z]')
           IMAGE_ID_CI=$(echo $IMAGE_ID_CI | tr '[A-Z]' '[a-z]')
+          IMAGE_ID_TOOL=$(echo $IMAGE_ID_TOOL | tr '[A-Z]' '[a-z]')
 
           # Strip git ref prefix from version
           VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
@@ -76,9 +80,14 @@ jobs:
 
           echo IMAGE_ID_BASE=$IMAGE_ID_BASE
           echo IMAGE_ID_CI=$IMAGE_ID_CI
+          echo IMAGE_ID_TOOL=$IMAGE_ID_TOOL
+          
           echo VERSION=$VERSION
 
           docker tag $IMAGE_NAME_BASE $IMAGE_ID_BASE:$VERSION
           docker tag $IMAGE_NAME_BASE $IMAGE_ID_CI:$VERSION
+          docker tag $IMAGE_NAME_BASE $IMAGE_ID_TOOL:$VERSION
+          
           docker push $IMAGE_ID_BASE:$VERSION
           docker push $IMAGE_ID_CI:$VERSION
+          docker push $IMAGE_ID_TOOL:$VERSION
